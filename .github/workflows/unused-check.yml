@@ -1,0 +1,28 @@
+name: Check for unused functions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unused-functions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run unused function detector
+        # run: npx unused-functions-detector ./src --ci --only-warn
+        run: node dist/index.js ./src --ci --only-warn

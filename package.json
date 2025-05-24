@@ -1,0 +1,25 @@
+{
+  "name": "unused-tracker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+   "bin": {
+    "unused-functions-detector": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc"
+  },
+   "keywords": ["cli", "typescript", "code-analysis", "unused", "tree-shaking"],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "ts-morph": "^26.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
