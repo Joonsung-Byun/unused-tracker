@@ -25,4 +25,4 @@ jobs:
 
       - name: Run unused function detector
         # run: npx unused-functions-detector ./src --ci --only-warn
-        run: node dist/index.js ./src --ci --only-warn
+        run: node dist/index.js ./src --ci 
