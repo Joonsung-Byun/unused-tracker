@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
+  "files": ["dist", "README.md"],
    "bin": {
     "unused-functions-detector": "./dist/index.js"
   },
@@ -11,9 +12,9 @@
     "build": "tsc"
   },
    "keywords": ["cli", "typescript", "code-analysis", "unused", "tree-shaking"],
-  "author": "",
+  "author": "Joonsung Byun",
   "license": "ISC",
-  "description": "",
+  "description": "TypeScript 프로젝트 내 미사용 함수 탐지 CLI 도구",
   "dependencies": {
     "ts-morph": "^26.0.0"
   },

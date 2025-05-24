@@ -1,17 +1,18 @@
 import { Project, SyntaxKind } from 'ts-morph';
 import path from 'path';
-import { writeJsonReport } from './output.js';
+import { writeJsonReport, writeHtmlReport } from './output.js';
 export async function detectUnusedFunctions(targetDir, options) {
     const project = new Project({ tsConfigFilePath: path.join(process.cwd(), 'tsconfig.json') });
-    // ✅ 확실하게 대상 파일을 추가
-    project.addSourceFilesAtPaths(`${targetDir}/**/*.{ts,tsx}`);
+    const globPattern = options?.exclude
+        ? [`${targetDir}/**/*.{ts,tsx}`, `!${options.exclude}`]
+        : [`${targetDir}/**/*.{ts,tsx}`];
+    project.addSourceFilesAtPaths(globPattern);
     const sourceFiles = project.getSourceFiles();
     console.log('📁 분석 대상 파일들:', sourceFiles.map(f => f.getFilePath()));
     console.log(`🔍 ${sourceFiles.length}개의 파일에서 함수 사용 여부를 분석합니다...`);
     const unusedFunctions = [];
     for (const file of sourceFiles) {
         const filePath = file.getFilePath();
-        // 일반 함수 선언
         const functions = file.getFunctions();
         for (const fn of functions) {
             const name = fn.getName() || '<anonymous>';
@@ -22,7 +23,6 @@ export async function detectUnusedFunctions(targetDir, options) {
                 unusedFunctions.push({ name, file: filePath, line });
             }
         }
-        // 변수에 저장된 화살표 함수 또는 function expression
         const variableDeclarations = file.getVariableDeclarations();
         for (const decl of variableDeclarations) {
             const name = decl.getName();
@@ -43,5 +43,15 @@ export async function detectUnusedFunctions(targetDir, options) {
     }
     if (options?.outputAsJson && unusedFunctions.length > 0) {
         writeJsonReport(unusedFunctions);
+    }
+    if (options?.outputAsHtml && unusedFunctions.length > 0) {
+        writeHtmlReport(unusedFunctions);
+    }
+    if (options?.isCI && unusedFunctions.length > 0 && !options.onlyWarn) {
+        console.error('\n❌ CI 실패: 미사용 함수가 발견되었습니다.');
+        process.exit(1);
+    }
+    else if (options?.isCI && unusedFunctions.length > 0 && options.onlyWarn) {
+        console.warn('\n⚠️ 경고: 미사용 함수가 있지만 --only-warn 옵션으로 CI를 통과시킵니다.');
     }
 }

@@ -1,18 +1,23 @@
 import { Project, SyntaxKind } from 'ts-morph';
 import path from 'path';
-import { writeJsonReport } from './output.js';
+import { writeJsonReport, writeHtmlReport } from './output.js';
 
 interface DetectOptions {
   outputAsJson?: boolean;
+  outputAsHtml?: boolean;
   isCI?: boolean;
   onlyWarn?: boolean;
+  exclude?: string;
 }
 
 export async function detectUnusedFunctions(targetDir: string, options?: DetectOptions) {
   const project = new Project({ tsConfigFilePath: path.join(process.cwd(), 'tsconfig.json') });
 
-  // ✅ 확실하게 대상 파일을 추가
-  project.addSourceFilesAtPaths(`${targetDir}/**/*.{ts,tsx}`);
+  const globPattern = options?.exclude
+    ? [`${targetDir}/**/*.{ts,tsx}`, `!${options.exclude}`]
+    : [`${targetDir}/**/*.{ts,tsx}`];
+
+  project.addSourceFilesAtPaths(globPattern);
   const sourceFiles = project.getSourceFiles();
 
   console.log('📁 분석 대상 파일들:', sourceFiles.map(f => f.getFilePath()));
@@ -23,7 +28,6 @@ export async function detectUnusedFunctions(targetDir: string, options?: DetectO
   for (const file of sourceFiles) {
     const filePath = file.getFilePath();
 
-    // 일반 함수 선언
     const functions = file.getFunctions();
     for (const fn of functions) {
       const name = fn.getName() || '<anonymous>';
@@ -36,7 +40,6 @@ export async function detectUnusedFunctions(targetDir: string, options?: DetectO
       }
     }
 
-    // 변수에 저장된 화살표 함수 또는 function expression
     const variableDeclarations = file.getVariableDeclarations();
     for (const decl of variableDeclarations) {
       const name = decl.getName();
@@ -60,6 +63,10 @@ export async function detectUnusedFunctions(targetDir: string, options?: DetectO
 
   if (options?.outputAsJson && unusedFunctions.length > 0) {
     writeJsonReport(unusedFunctions);
+  }
+
+  if (options?.outputAsHtml && unusedFunctions.length > 0) {
+    writeHtmlReport(unusedFunctions);
   }
 
   if (options?.isCI && unusedFunctions.length > 0 && !options.onlyWarn) {
